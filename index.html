@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Living Room Scene with Director's Mode</title>
+    <title>Three.js Living Room Scene</title>
     <style>
         body { 
             margin: 0; 
@@ -21,40 +21,6 @@
             border-radius: 5px;
             z-index: 1;
         }
-        #controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: white;
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 1;
-        }
-        #controls select, #controls button {
-            padding: 5px;
-            margin-left: 5px;
-            border-radius: 3px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #director-mode-btn {
-            background-color: #4CAF50; /* Green */
-            color: white;
-        }
-        #mini-map {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 200px;
-            height: 200px;
-            border: 2px solid #fff;
-            border-radius: 5px;
-            pointer-events: none; /* Allows interaction with main canvas */
-            z-index: 1;
-        }
     </style>
 </head>
 <body>
@@ -62,17 +28,6 @@
         <h2>Three.js Living Room Scene</h2>
         <p>Use your mouse to navigate the scene.</p>
     </div>
-    <div id="controls">
-        <label for="scene-selector">Select View: </label>
-        <select id="scene-selector">
-            <option value="default">Default View</option>
-            <option value="front">Front View</option>
-            <option value="side">Side View</option>
-            <option value="top">Top View</option>
-        </select>
-        <button id="director-mode-btn">Toggle Director's Mode</button>
-    </div>
-    <canvas id="mini-map"></canvas>
     <!-- Include Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Include OrbitControls -->
@@ -82,7 +37,6 @@
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xa0a0a0); // Light gray background
 
-        // Perspective Camera
         const camera = new THREE.PerspectiveCamera(
             60, 
             window.innerWidth / window.innerHeight, 
@@ -90,45 +44,20 @@
             1000
         );
         camera.position.set(10, 10, 10);
-        camera.lookAt(5, 0, 5);
+        camera.lookAt(0, 0, 0);
 
-        // Orthographic Camera for Director's Mode
-        const directorCamera = new THREE.OrthographicCamera(
-            window.innerWidth / -200, window.innerWidth / 200,
-            window.innerHeight / 200, window.innerHeight / -200,
-            0.1, 1000
-        );
-        directorCamera.position.set(5, 20, 5);
-        directorCamera.lookAt(5, 0, 5);
-        directorCamera.up.set(0, 0, -1); // Adjusting the up direction for top-down view
-
-        // Renderer for Main Scene
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
         document.body.appendChild(renderer.domElement);
 
-        // Renderer for Mini-Map
-        const miniMapRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        miniMapRenderer.setSize(200, 200);
-        miniMapRenderer.setClearColor(0x000000, 0); // Transparent background
-        document.getElementById('mini-map').appendChild(miniMapRenderer.domElement);
-
-        // OrbitControls for Main Camera
+        // OrbitControls for Camera Navigation
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(5, 0, 5);
+        controls.target.set(0, 2, 0);
         controls.update();
 
-        // OrbitControls for Director's Camera (disabled by default)
-        const directorControls = new THREE.OrbitControls(directorCamera, miniMapRenderer.domElement);
-        directorControls.enablePan = false;
-        directorControls.enableZoom = false;
-        directorControls.enableRotate = false;
-        directorControls.target.set(5, 0, 5);
-        directorControls.update();
-
-        // Grid Helper (Floor Reference)
+        // Add Grid Helper (Floor Reference)
         const grid = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
         grid.position.y = 0;
         grid.material.opacity = 0.2;
@@ -257,20 +186,6 @@
             backrest.receiveShadow = true;
             couchGroup.add(backrest);
 
-            // Armrests
-            const armGeometry = new THREE.BoxGeometry(0.5, 1, 2);
-            const leftArm = new THREE.Mesh(armGeometry, couchMaterial);
-            leftArm.position.set(-2.25, 0.75, 0);
-            leftArm.castShadow = true;
-            leftArm.receiveShadow = true;
-            couchGroup.add(leftArm);
-
-            const rightArm = new THREE.Mesh(armGeometry, couchMaterial);
-            rightArm.position.set(2.25, 0.75, 0);
-            rightArm.castShadow = true;
-            rightArm.receiveShadow = true;
-            couchGroup.add(rightArm);
-
             // Pillows
             const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
             const pillowGeometry = new THREE.BoxGeometry(1, 0.5, 1.5);
@@ -363,7 +278,7 @@
             scene.add(tableGroup);
         }
 
-        // Function to create all furniture
+        // Function to create the entire furniture setup
         function createFurniture() {
             createCouch();
             createLamp(new THREE.Vector3(2, 0.25, 2)); // Front left corner
@@ -373,108 +288,12 @@
 
         createFurniture();
 
-        // Director's Mode Helpers
-        const lightHelpers = [];
-        const cameraHelpers = [];
-
-        function addLightHelpers() {
-            scene.traverse((child) => {
-                if (child.isSpotLight || child.isDirectionalLight) {
-                    const helper = new THREE.SpotLightHelper(child);
-                    lightHelpers.push(helper);
-                    scene.add(helper);
-                }
-            });
-        }
-
-        function addCameraHelpers() {
-            const mainCameraHelper = new THREE.CameraHelper(camera);
-            cameraHelpers.push(mainCameraHelper);
-            scene.add(mainCameraHelper);
-        }
-
-        // Function to update helpers each frame
-        function updateHelpers() {
-            lightHelpers.forEach(helper => {
-                helper.update();
-            });
-            cameraHelpers.forEach(helper => {
-                helper.update();
-            });
-        }
-
-        // Director's Mode Toggle
-        let isDirectorMode = false;
-        const directorModeBtn = document.getElementById('director-mode-btn');
-        directorModeBtn.addEventListener('click', () => {
-            isDirectorMode = !isDirectorMode;
-            if (isDirectorMode) {
-                directorModeBtn.textContent = "Exit Director's Mode";
-                // Add helpers
-                addLightHelpers();
-                addCameraHelpers();
-                // Disable main controls and enable director's controls
-                controls.enabled = false;
-            } else {
-                directorModeBtn.textContent = "Toggle Director's Mode";
-                // Remove helpers
-                lightHelpers.forEach(helper => {
-                    scene.remove(helper);
-                });
-                cameraHelpers.forEach(helper => {
-                    scene.remove(helper);
-                });
-                lightHelpers.length = 0;
-                cameraHelpers.length = 0;
-                // Enable main controls and disable director's controls
-                controls.enabled = true;
-            }
-        });
-
-        // Scene Selector
-        const sceneSelector = document.getElementById('scene-selector');
-        sceneSelector.addEventListener('change', (event) => {
-            const selectedView = event.target.value;
-            switch(selectedView) {
-                case 'default':
-                    camera.position.set(10, 10, 10);
-                    camera.lookAt(5, 0, 5);
-                    break;
-                case 'front':
-                    camera.position.set(5, 5, 15);
-                    camera.lookAt(5, 0, 5);
-                    break;
-                case 'side':
-                    camera.position.set(15, 5, 5);
-                    camera.lookAt(5, 0, 5);
-                    break;
-                case 'top':
-                    camera.position.set(5, 20, 5);
-                    camera.lookAt(5, 0, 5);
-                    break;
-                default:
-                    camera.position.set(10, 10, 10);
-                    camera.lookAt(5, 0, 5);
-            }
-            controls.update();
-        });
-
-        // Responsive Design
+        // Function to handle window resizing
         function onWindowResize() {
-            // Update main camera
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
 
-            // Update director's camera
-            directorCamera.left = window.innerWidth / -200;
-            directorCamera.right = window.innerWidth / 200;
-            directorCamera.top = window.innerHeight / 200;
-            directorCamera.bottom = window.innerHeight / -200;
-            directorCamera.updateProjectionMatrix();
-
-            // Update renderers
             renderer.setSize(window.innerWidth, window.innerHeight);
-            miniMapRenderer.setSize(200, 200);
         }
 
         window.addEventListener('resize', onWindowResize, false);
@@ -482,12 +301,7 @@
         // Animation Loop
         function animate() {
             requestAnimationFrame(animate);
-            updateHelpers();
-            renderer.render(scene, isDirectorMode ? directorCamera : camera);
-            if (isDirectorMode) {
-                // Render mini-map
-                miniMapRenderer.render(scene, directorCamera);
-            }
+            renderer.render(scene, camera);
         }
 
         animate();
