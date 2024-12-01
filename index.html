@@ -3,308 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Living Room Scene</title>
+    <title>Three.js Scene Previs with Director's Mode</title>
     <style>
         body { 
             margin: 0; 
             overflow: hidden; 
             font-family: Arial, sans-serif; 
-            background-color: #a0a0a0; 
+            background-color: #f0f0f0; 
         }
-        #info {
+        #scene-info {
             position: absolute;
             top: 10px;
             left: 10px;
-            color: #ffffff;
-            background: rgba(0,0,0,0.5);
+            color: white;
+            background: rgba(0,0,0,0.7);
             padding: 10px;
             border-radius: 5px;
-            z-index: 1;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        #scene-info h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #controls select, #controls button {
+            padding: 5px;
+            margin-left: 5px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+        }
+        #director-mode-btn {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+        }
+        /* Mini-map styling */
+        #mini-map {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 200px;
+            height: 200px;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            pointer-events: none; /* Allows interaction with main canvas */
         }
     </style>
 </head>
 <body>
-    <div id="info">
-        <h2>Three.js Living Room Scene</h2>
-        <p>Use your mouse to navigate the scene.</p>
+    <div id="scene-info">
+        <h2>Scene Title</h2>
+        <p>Description of the scene.</p>
     </div>
-    <!-- Include Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Include OrbitControls -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        // Scene, Camera, Renderer Setup
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xa0a0a0); // Light gray background
-
-        const camera = new THREE.PerspectiveCamera(
-            60, 
-            window.innerWidth / window.innerHeight, 
-            0.1, 
-            1000
-        );
-        camera.position.set(10, 10, 10);
-        camera.lookAt(0, 0, 0);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-        document.body.appendChild(renderer.domElement);
-
-        // OrbitControls for Camera Navigation
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 2, 0);
-        controls.update();
-
-        // Add Grid Helper (Floor Reference)
-        const grid = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
-        grid.position.y = 0;
-        grid.material.opacity = 0.2;
-        grid.material.transparent = true;
-        scene.add(grid);
-
-        // Room Dimensions
-        const roomWidth = 10;
-        const roomHeight = 5;
-        const roomDepth = 10;
-
-        // Function to create walls, floor, and ceiling
-        function createRoom() {
-            const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
-            const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-
-            // Floor
-            const floorGeometry = new THREE.BoxGeometry(roomWidth, 0.1, roomDepth);
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.position.set(roomWidth / 2, 0, roomDepth / 2);
-            floor.receiveShadow = true;
-            scene.add(floor);
-
-            // Ceiling
-            const ceilingGeometry = new THREE.BoxGeometry(roomWidth, 0.1, roomDepth);
-            const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-            ceiling.position.set(roomWidth / 2, roomHeight, roomDepth / 2);
-            scene.add(ceiling);
-
-            // Back Wall
-            const backWallGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, 0.1);
-            const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
-            backWall.position.set(roomWidth / 2, roomHeight / 2, roomDepth);
-            backWall.receiveShadow = true;
-            scene.add(backWall);
-
-            // Front Wall
-            const frontWallGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, 0.1);
-            const frontWall = new THREE.Mesh(frontWallGeometry, wallMaterial);
-            frontWall.position.set(roomWidth / 2, roomHeight / 2, 0);
-            frontWall.receiveShadow = true;
-            scene.add(frontWall);
-
-            // Left Wall
-            const leftWallGeometry = new THREE.BoxGeometry(0.1, roomHeight, roomDepth);
-            const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
-            leftWall.position.set(0, roomHeight / 2, roomDepth / 2);
-            leftWall.receiveShadow = true;
-            scene.add(leftWall);
-
-            // Right Wall
-            const rightWallGeometry = new THREE.BoxGeometry(0.1, roomHeight, roomDepth);
-            const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial);
-            rightWall.position.set(roomWidth, roomHeight / 2, roomDepth / 2);
-            rightWall.receiveShadow = true;
-            scene.add(rightWall);
+    <div id="controls">
+        <label for="scene-selector">Select Scene: </label>
+        <select id="scene-selector">
+            <option value="SC01">SC01: Alex's Restful Afternoon</option>
+            <option value="SC02">SC02: Jordan's Laughter</option>
+            <option value="SC03">SC03: Pug's Playful Focus</option>
+            <!-- Dynamically populate additional scenes -->
+        </select>
+        <button id="director-mode-btn">Toggle Director's Mode</button>
+    </div>
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.156.1/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.156.1/examples/jsm/"
         }
-
-        createRoom();
-
-        // Lighting Setup
-        function createLights() {
-            // Ambient Light for general illumination
-            const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Soft white light
-            scene.add(ambientLight);
-
-            // Directional Light to simulate sunlight
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(5, 10, 7.5);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 1024;
-            directionalLight.shadow.mapSize.height = 1024;
-            directionalLight.shadow.camera.near = 0.5;
-            directionalLight.shadow.camera.far = 50;
-            scene.add(directionalLight);
-
-            // Spotlights for artificial lighting (e.g., lamps)
-            const spotLight1 = new THREE.SpotLight(0xffaa00, 1);
-            spotLight1.position.set(2, 4, 2);
-            spotLight1.angle = Math.PI / 6;
-            spotLight1.penumbra = 0.2;
-            spotLight1.decay = 2;
-            spotLight1.distance = 15;
-            spotLight1.castShadow = true;
-            spotLight1.shadow.mapSize.width = 1024;
-            spotLight1.shadow.mapSize.height = 1024;
-            spotLight1.shadow.camera.near = 0.5;
-            spotLight1.shadow.camera.far = 50;
-            scene.add(spotLight1);
-
-            const spotLight2 = new THREE.SpotLight(0xffaa00, 1);
-            spotLight2.position.set(8, 4, 8);
-            spotLight2.angle = Math.PI / 6;
-            spotLight2.penumbra = 0.2;
-            spotLight2.decay = 2;
-            spotLight2.distance = 15;
-            spotLight2.castShadow = true;
-            spotLight2.shadow.mapSize.width = 1024;
-            spotLight2.shadow.mapSize.height = 1024;
-            spotLight2.shadow.camera.near = 0.5;
-            spotLight2.shadow.camera.far = 50;
-            scene.add(spotLight2);
-        }
-
-        createLights();
-
-        // Function to create a couch using built-in primitives
-        function createCouch() {
-            const couchGroup = new THREE.Group();
-
-            const couchMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-
-            // Base
-            const baseGeometry = new THREE.BoxGeometry(4, 0.5, 2);
-            const base = new THREE.Mesh(baseGeometry, couchMaterial);
-            base.castShadow = true;
-            base.receiveShadow = true;
-            couchGroup.add(base);
-
-            // Backrest
-            const backGeometry = new THREE.BoxGeometry(4, 2, 0.5);
-            const backrest = new THREE.Mesh(backGeometry, couchMaterial);
-            backrest.position.set(0, 1.25, -0.75);
-            backrest.castShadow = true;
-            backrest.receiveShadow = true;
-            couchGroup.add(backrest);
-
-            // Pillows
-            const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
-            const pillowGeometry = new THREE.BoxGeometry(1, 0.5, 1.5);
-
-            const pillow1 = new THREE.Mesh(pillowGeometry, pillowMaterial);
-            pillow1.position.set(-1, 1.75, 0.25);
-            pillow1.castShadow = true;
-            pillow1.receiveShadow = true;
-            couchGroup.add(pillow1);
-
-            const pillow2 = new THREE.Mesh(pillowGeometry, pillowMaterial);
-            pillow2.position.set(1, 1.75, 0.25);
-            pillow2.castShadow = true;
-            pillow2.receiveShadow = true;
-            couchGroup.add(pillow2);
-
-            couchGroup.position.set(5, 0.25, 5); // Position the couch in the room
-            scene.add(couchGroup);
-        }
-
-        // Function to create a lamp using built-in primitives
-        function createLamp(position) {
-            const lampGroup = new THREE.Group();
-
-            const lampMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
-
-            // Base
-            const baseGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 32);
-            const base = new THREE.Mesh(baseGeometry, lampMaterial);
-            base.castShadow = true;
-            base.receiveShadow = true;
-            lampGroup.add(base);
-
-            // Stem
-            const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 32);
-            const stem = new THREE.Mesh(stemGeometry, lampMaterial);
-            stem.position.set(0, 0.55, 0);
-            stem.castShadow = true;
-            stem.receiveShadow = true;
-            lampGroup.add(stem);
-
-            // Shade
-            const shadeGeometry = new THREE.SphereGeometry(0.3, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-            const shadeMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0xFFFFE0, 
-                emissive: 0xFFFFE0, 
-                emissiveIntensity: 0.5, 
-                side: THREE.DoubleSide 
-            });
-            const shade = new THREE.Mesh(shadeGeometry, shadeMaterial);
-            shade.position.set(0, 1.05, 0);
-            shade.castShadow = true;
-            lampGroup.add(shade);
-
-            lampGroup.position.copy(position);
-            scene.add(lampGroup);
-        }
-
-        // Function to create a coffee table using built-in primitives
-        function createCoffeeTable() {
-            const tableGroup = new THREE.Group();
-
-            const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x654321 });
-
-            // Tabletop
-            const tabletopGeometry = new THREE.BoxGeometry(3, 0.2, 1.5);
-            const tabletop = new THREE.Mesh(tabletopGeometry, tableMaterial);
-            tabletop.castShadow = true;
-            tabletop.receiveShadow = true;
-            tableGroup.add(tabletop);
-
-            // Legs
-            const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 16);
-            const legPositions = [
-                [-1.45, -0.6, -0.6],
-                [1.45, -0.6, -0.6],
-                [-1.45, -0.6, 0.6],
-                [1.45, -0.6, 0.6],
-            ];
-
-            legPositions.forEach(pos => {
-                const leg = new THREE.Mesh(legGeometry, tableMaterial);
-                leg.position.set(pos[0], pos[1], pos[2]);
-                leg.castShadow = true;
-                leg.receiveShadow = true;
-                tableGroup.add(leg);
-            });
-
-            tableGroup.position.set(5, 0.1, 5); // Position the table in front of the couch
-            scene.add(tableGroup);
-        }
-
-        // Function to create the entire furniture setup
-        function createFurniture() {
-            createCouch();
-            createLamp(new THREE.Vector3(2, 0.25, 2)); // Front left corner
-            createLamp(new THREE.Vector3(8, 0.25, 8)); // Back right corner
-            createCoffeeTable();
-        }
-
-        createFurniture();
-
-        // Function to handle window resizing
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        window.addEventListener('resize', onWindowResize, false);
-
-        // Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-
-        animate();
+    }
     </script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
